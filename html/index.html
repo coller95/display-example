@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosquitto WebSocket Client</title>
+</head>
+<body>
+    <h1>Mosquitto WebSocket Client</h1>
+    <p>Connection Status: <span id="status">connecting</span></p>
+
+    <label for="topic">Topic:</label>
+    <input type="text" id="topic" placeholder="Enter MQTT topic">
+    <br>
+
+    <label for="message">Message:</label>
+    <textarea id="message" rows="4" placeholder="Enter message to publish"></textarea>
+    <br>
+
+    <button onclick="publishMessage()">Publish</button>
+    <button onclick="subscribeTopic()">Subscribe</button>
+    <button onclick="unsubscribeTopic()">Unsubscribe</button>
+    <br><br>
+
+    <label for="receivedMessages">Received Messages:</label>
+    <textarea id="receivedMessages" rows="8" readonly></textarea>
+
+    <!-- Local Paho MQTT JavaScript client -->
+    <script src="mqttws31.min.js"></script>
+    <script>
+        const host = window.location.hostname;
+        const port = Number(window.location.port) || 80;
+        const client = new Paho.MQTT.Client(host, port, "/mqtt", "web_client_" + new Date().getTime());
+
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+        
+        client.connect({ onSuccess: onConnect });
+
+        function onConnect() {
+            document.getElementById("status").innerText = "connected";
+        }
+
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                document.getElementById("status").innerText = "disconnected";
+            }
+        }
+
+        function onMessageArrived(message) {
+            const receivedTextarea = document.getElementById("receivedMessages");
+            receivedTextarea.value += `Topic: ${message.destinationName}, Message: ${message.payloadString}\n`;
+        }
+
+        function publishMessage() {
+            const topic = document.getElementById("topic").value;
+            const message = document.getElementById("message").value;
+            if (topic && message) {
+                const mqttMessage = new Paho.MQTT.Message(message);
+                mqttMessage.destinationName = topic;
+                client.send(mqttMessage);
+            }
+        }
+
+        function subscribeTopic() {
+            const topic = document.getElementById("topic").value;
+            if (topic) {
+                client.subscribe(topic);
+            }
+        }
+
+        function unsubscribeTopic() {
+            const topic = document.getElementById("topic").value;
+            if (topic) {
+                client.unsubscribe(topic);
+            }
+        }
+    </script>
+</body>
+</html>

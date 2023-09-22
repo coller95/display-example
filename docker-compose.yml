@@ -34,3 +34,26 @@ services:
         max-size: "10m"
         max-file: "3"
         compress: "true"
+
+
+  keepalived:
+    build:
+      context: ./keepalived
+      dockerfile: Dockerfile
+    volumes:
+      # Master
+      - ./keepalived/keepalived-master.conf:/etc/keepalived/keepalived.conf 
+      # Backup
+      # - ./keepalived/keepalived-backup.conf:/etc/keepalived/keepalived.conf
+    network_mode: "host"
+    privileged: true
+    restart: always
+    depends_on:
+      - web
+    stop_grace_period: 1s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"

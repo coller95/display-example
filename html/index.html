@@ -35,7 +35,10 @@
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
         
-        client.connect({ onSuccess: onConnect });
+        client.connect({
+            onSuccess: onConnect,
+            keepAliveInterval: 30  // Set the keep-alive interval to 30 seconds
+        });
 
         function onConnect() {
             document.getElementById("status").innerText = "connected";
